@@ -10,5 +10,5 @@ docker run -d --name asm-container -p 8080:8080 asm-app
 
 Run Docker Compose:
 ```
-docker-compose up --build
+docker-compose up -d --build
 ```

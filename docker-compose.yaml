@@ -1,8 +1,10 @@
-version: '3.8'
-
+# 'version' is obsolete and has been removed
 services:
   webserver:
-    image: asm-webserver
+    # This tells Docker Compose to build the image from the Dockerfile
+    # in the current directory '.'
+    build: .
+    image: asm-webserver # It's good practice to still name the image
     restart: always
 
   nginx:
