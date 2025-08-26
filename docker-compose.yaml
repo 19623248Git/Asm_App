@@ -1,11 +1,10 @@
-# 'version' is obsolete and has been removed
 services:
   webserver:
-    # This tells Docker Compose to build the image from the Dockerfile
-    # in the current directory '.'
     build: .
-    image: asm-webserver # It's good practice to still name the image
+    image: asm-webserver
     restart: always
+    networks:
+      - app-network
 
   nginx:
     image: nginx:latest
@@ -17,3 +16,10 @@ services:
       - ./nginx:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
+    networks:
+      - app-network
+
+# Explicitly define the network
+networks:
+  app-network:
+    driver: bridge
