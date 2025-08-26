@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  webserver:
+    image: asm-webserver
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
