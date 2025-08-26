@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assembly Server Gallery</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Image Gallery</h1>
+        <p>Served by a custom Assembly web server.</p>
+        <a href="/aboutus.html" class="button">About This Server</a>
+    </header>
+
+    <!-- Server Actions -->
+    <section class="actions-container">
+        <!-- POST Form -->
+        <div class="action-card">
+            <h3>Upload New Image (POST)</h3>
+            <form id="post-form">
+                <input type="file" id="post-file" class="input-field" accept=".png" required>
+                <button type="submit" class="button">Upload</button>
+            </form>
+        </div>
+
+        <!-- PUT Form -->
+        <div class="action-card">
+            <h3>Update Existing Image (PUT)</h3>
+            <form id="put-form">
+                <input type="text" id="put-filename" class="input-field" placeholder="Filename to replace (e.g., a.png)" required>
+                <input type="file" id="put-file" class="input-field" required>
+                <button type="submit" class="button">Update</button>
+            </form>
+        </div>
+
+        <!-- DELETE Form -->
+        <div class="action-card">
+            <h3>Delete Image (DELETE)</h3>
+            <form id="delete-form">
+                <input type="text" id="delete-filename" class="input-field" placeholder="Filename to delete (e.g., b.png)" required>
+                <button type="submit" class="button button-delete">Delete</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Status Message -->
+    <div id="status-message"></div>
+
+    <main id="gallery-container"></main>
+    <script src="app.js"></script>
+</body>
+</html>
