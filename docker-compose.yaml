@@ -3,6 +3,8 @@ services:
     build: .
     image: asm-webserver
     restart: always
+    ports:
+      - "8080:8080"
     networks:
       - app-network
 
@@ -19,7 +21,6 @@ services:
     networks:
       - app-network
 
-# Explicitly define the network
 networks:
   app-network:
     driver: bridge
