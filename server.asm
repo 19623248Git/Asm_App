@@ -97,8 +97,8 @@ section .data
         content_type_json_len equ $ - content_type_json
 
         ; HTTP 200 OK Response parts
-        http_200_ok        db 'HTTP/1.1 200 OK', 0x0d, 0x0a
-        http_200_ok_len    equ $ - http_200_ok
+        http_200_ok       db 'HTTP/1.1 200 OK', 0x0d, 0x0a
+        http_200_ok_len   equ $ - http_200_ok
         content_len_header db 'Content-Length: '
         content_len_len    equ $ - content_len_header
         crlf               db 0x0d, 0x0a
@@ -241,10 +241,10 @@ _start:
     syscall
 
     lea r8, [request_buffer + 4] 
-    mov rdi, r8             
-    mov rcx, 2048           
-    mov al, ' '             
-    repne scasb             
+    mov rdi, r8           
+    mov rcx, 2048         
+    mov al, ' '           
+    repne scasb           
     cmp rcx, 0
     je .handle_bad_request
     mov rdx, rdi
@@ -410,11 +410,11 @@ _start:
     push rbx
     push rcx
     mov rcx, 255 
-    xor al, al   
+    xor al, al  
     repne scasb
     mov r8, rdi  
     sub r8, rdx  
-    dec r8       
+    dec r8      
     pop rcx
     pop rbx
     
@@ -664,11 +664,34 @@ _start:
         mov rdi, r15
         syscall
 
-        lea rdx, [final_filepath]
-        mov rsi, [filename_len]
+        ; --- MODIFIED SECTION START ---
+        ; Check if the parsed filename already ends with .png
         lea rdi, [parsed_filename]
-        call build_final_filepath_with_ext
+        mov rsi, [filename_len]
+        call check_if_ends_with_png
+        
+        cmp rax, 1 ; Check the result from the function (1 = true)
+        je .filename_already_has_ext
 
+.filename_needs_ext:
+        ; The filename does NOT end in .png, so we call the original
+        ; function to add the extension.
+        lea rdx, [final_filepath]
+        lea rdi, [parsed_filename]
+        mov rsi, [filename_len]
+        call build_final_filepath_with_ext
+        jmp .path_is_built
+
+.filename_already_has_ext:
+        ; The filename already has .png, so we call the new function
+        ; that DOES NOT add an extension.
+        lea rdi, [final_filepath]
+        lea rsi, [parsed_filename]
+        mov rdx, [filename_len]
+        call build_final_filepath_no_ext
+
+.path_is_built:
+        ; Both logic paths converge here to continue.
         mov rax, 82
         lea rdi, [full_temp_path]
         lea rsi, [final_filepath]
@@ -680,6 +703,7 @@ _start:
         mov rdx, http_201_len
         syscall
         jmp .exit_client_success
+        ; --- MODIFIED SECTION END ---
 
 .handle_put:
         mov rax, 1
@@ -926,6 +950,54 @@ build_final_filepath_with_ext:
     mov byte [rdi], 0
     ret
 
+; --- NEW SUBROUTINE ---
+; Checks if a filename ends with '.png'.
+; Input: RDI=ptr to filename, RSI=len
+; Output: RAX=1 if true, RAX=0 if false.
+check_if_ends_with_png:
+    cmp rsi, 4
+    jl .does_not_end_with_png ; If length < 4, it can't be '.png'
+
+    ; Calculate the position of the last 4 characters
+    lea rbx, [rdi + rsi - 4]
+    
+    ; Compare the last 4 bytes with '.png' (in little-endian 'gnp.')
+    cmp dword [rbx], '.png'
+    je .ends_with_png
+
+.does_not_end_with_png:
+    mov rax, 0 ; Return 0 for false
+    ret
+
+.ends_with_png:
+    mov rax, 1 ; Return 1 for true
+    ret
+
+; --- NEW SUBROUTINE ---
+; Builds the final path without adding an extension.
+; Input: RDI=dest buffer, RSI=source filename, RDX=filename len
+build_final_filepath_no_ext:
+    push rdi
+    push rsi
+    push rcx
+
+    ; 1. Copy the directory prefix 'app/img/'
+    lea rsi, [app_dir_prefix]
+    mov rcx, app_dir_prefix_len
+    rep movsb
+
+    ; 2. Copy the provided filename
+    pop rcx
+    pop rsi
+    mov rcx, rdx
+    rep movsb
+
+    ; 3. Null-terminate the string
+    mov byte [rdi], 0
+    
+    pop rdi
+    ret
+
 determine_content_type:
     push    rbp
     mov     rbp, rsp
@@ -935,13 +1007,13 @@ determine_content_type:
     push    rbx
     mov     rax, rdi    
     add     rax, rsi    
-    dec     rax     
-    std             
+    dec     rax   
+    std           
     mov     rdi, rax    
     mov     rcx, rsi    
-    mov     al, '.'   
+    mov     al, '.' 
     repne   scasb
-    cld             
+    cld           
     jne     .set_default_content_type
     lea     rbx, [rdi + 2]
     cmp     byte [rbx], 'p'
